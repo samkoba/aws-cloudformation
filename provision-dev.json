@@ -1,0 +1,296 @@
+"Parameters" : {
+   "AmiId" : {
+      "Type" : "String",
+      "Default" : "ami-0f62d9254ca98e1aa",
+      "AllowedValues": [
+         "ami-013da7ea7023d5f7c",
+         "ami-0f62d9254ca98e1aa"
+     ],
+   },
+   "InstanceType": {
+      "Type" : "String",
+      "Default" : "t3.micro",
+      "AllowedValues" : [
+         "t3.nano",
+         "t3.medium",
+         "t3.micro",
+      ]
+   },
+   "KeyPair" : {
+      "Default" : "development",
+      "Type" : "String"
+   }, 
+   "CidrVpc" : {
+      "Default" : "10.120.1.0/24",
+      "Type" : "String"
+   },
+   "PubSubnetA" : {
+      "Default" : "10.120.1.0/27",
+      "Type" : "String"
+   },
+   "PubSubnetB" : {
+      "Default" : "10.120.1.32/27",
+      "Type" : "String"
+   },
+   "PrivSubnetA" : {
+      "Default" : "10.120.1.64/27",
+      "Type" : "String"
+   },
+   "PrivSubnetB" : {
+      "Default" : "10.120.1.96/27",
+      "Type" : "String"
+   },
+   "IntSubnetA" : {
+      "Default" : "10.120.1.128/27",
+      "Type" : "String"
+   },
+   "IntSubnetB" : {
+      "Default" : "10.120.1.160/27",
+      "Type" : "String"
+   }
+}
+
+"Resources": {
+   "VPC1" : {
+        "Type" : "AWS::EC2::VPC",
+        "Properties" : {
+           "CidrBlock" : { "Ref" : "CidrVpc"},
+           "EnableDnsSupport" : "true",
+           "EnableDnsHostnames" : "true",
+           "Tags" : [ 
+              {"Key" : "stack", "Value" : "development"},
+              {"Key" : "Name", "Value" : "env-app-vpc"} 
+              
+           ]
+        }
+     },
+   "PublicSubnetA" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+         "VpcId" : { "Ref" : "VPC1" },
+         "CidrBlock" :{ "Ref" : "PubSubnetA"},
+         "AvailabilityZone" : !Sub "${AWS::Region}a",
+         "Tags" : [ { "Key" : "stack", "Value" : "development" },
+         {"Key" : "Name", "Value" : "env-public-subnet-a"} ]
+      }
+   },
+   "PublicSubnetB" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+         "VpcId" : { "Ref" : "VPC1" },
+         "CidrBlock" : { "Ref" : "PubSubnetB"},
+         "AvailabilityZone" : !Sub "${AWS::Region}b",
+         "Tags" : [ { "Key" : "stack", "Value" : "development" },
+         {"Key" : "Name", "Value" : "env-public-subnet-b"} ]
+      }
+   },
+   "PrivateSubnetA" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+         "VpcId" : { "Ref" : "VPC1" },
+         "CidrBlock" : { "Ref" : "PrivSubnetA"},
+         "AvailabilityZone" : !Sub "${AWS::Region}a",
+         "Tags" : [ { "Key" : "stack", "Value" : "development" },
+         {"Key" : "Name", "Value" : "env-private-subnet-a"} ]
+      }
+   },
+   "PrivateSubnetB" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+         "VpcId" : { "Ref" : "VPC1" },
+         "CidrBlock" : { "Ref" : "PrivSubnetB"},
+         "AvailabilityZone" : !Sub "${AWS::Region}b",
+         "Tags" : [ { "Key" : "stack", "Value" : "development" },
+         {"Key" : "Name", "Value" : "env-private-subnet-b"} ]
+      }
+   },
+   "IntraSubnetA" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+         "VpcId" : { "Ref" : "VPC1" },
+         "CidrBlock" : { "Ref" : "IntSubnetA"},
+         "AvailabilityZone" : !Sub "${AWS::Region}a",
+         "Tags" : [ { "Key" : "stack", "Value" : "development" },
+         {"Key" : "Name", "Value" : "env-intra-subnet-a"} ]
+      }
+   },
+   "IntraSubnetB" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+         "VpcId" : { "Ref" : "VPC1" },
+         "CidrBlock" : { "Ref" : "IntSubnetB"},
+         "AvailabilityZone" : !Sub "${AWS::Region}b",
+         "Tags" : [ { "Key" : "stack", "Value" : "development" },
+         {"Key" : "Name", "Value" : "env-intra-subnet-b"} ]
+      }
+   },
+   "SecurityGroup1" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+          "GroupDescription" : "Instance Public Subnet",
+          "VpcId" : {"Ref" : "VPC1"},
+          "SecurityGroupIngress" : [{
+              "IpProtocol" : "tcp",
+              "FromPort" : 80,
+              "ToPort" : 80,
+              "CidrIp" : "0.0.0.0/0"
+          }],
+          "SecurityGroupIngress" : [{
+            "IpProtocol" : "tcp",
+            "FromPort" : 22,
+            "ToPort" : 22,
+            "CidrIp" : "0.0.0.0/0"
+        }],
+          "SecurityGroupEgress" : [{
+              "IpProtocol" : "tcp",
+              "FromPort" : 80,
+              "ToPort" : 80,
+              "CidrIp" : "0.0.0.0/0"
+          }],
+      "Tags" : [ { "Key" : "Name", "Value" : "env-Public-SG" }]
+      }
+   },
+   "SecurityGroup2" : {
+   "Type" : "AWS::EC2::SecurityGroup",
+   "Properties" : {
+       "GroupDescription" : "Instance Public Subnet",
+       "VpcId" : {"Ref" : "VPC1"},
+       "SecurityGroupIngress" : [{
+           "IpProtocol" : "tcp",
+           "FromPort" : 80,
+           "ToPort" : 80,
+           "CidrIp" : "0.0.0.0/0"
+       }],
+       "SecurityGroupIngress" : [{
+         "IpProtocol" : "tcp",
+         "FromPort" : 22,
+         "ToPort" : 22,
+         "CidrIp" : "0.0.0.0/0"
+     }],
+       "SecurityGroupEgress" : [{
+           "IpProtocol" : "tcp",
+           "FromPort" : 80,
+           "ToPort" : 80,
+           "CidrIp" : "0.0.0.0/0"
+       }],
+   "Tags" : [ { "Key" : "Name", "Value" : "env-Private-SG" }]
+   }
+   },
+   "SecurityGroup3" : {
+   "Type" : "AWS::EC2::SecurityGroup",
+   "Properties" : {
+       "GroupDescription" : "Instance Intra Subnet",
+       "VpcId" : {"Ref" : "VPC1"},
+       "SecurityGroupIngress" : [{
+           "IpProtocol" : "tcp",
+           "FromPort" : 3306,
+           "ToPort" : 3306,
+           "CidrIp" : "0.0.0.0/0"
+       }],
+       "SecurityGroupIngress" : [{
+         "IpProtocol" : "tcp",
+         "FromPort" : 22,
+         "ToPort" : 22,
+         "CidrIp" : "0.0.0.0/0"
+     }],
+       "SecurityGroupEgress" : [{
+           "IpProtocol" : "tcp",
+           "FromPort" : 80,
+           "ToPort" : 80,
+           "CidrIp" : "0.0.0.0/0"
+       }],
+   "Tags" : [ { "Key" : "Name", "Value" : "env-Intra-SG" }]
+   }
+   },
+    "Instance0" : {
+        "Type" : "AWS::EC2::Instance",
+        "Properties" : {
+           "ImageId" :  { "Ref" : "AmiId" },
+           "KeyName" :  { "Ref" : "KeyPair"},
+           "InstanceType" : { "Ref" : "InstanceType"},
+           "NetworkInterfaces": [ {
+            "AssociatePublicIpAddress": "true",
+            "DeviceIndex": "0",
+            "GroupSet": [{ "Ref" : "SecurityGroup1" }],
+            "SubnetId": { "Ref" : "PublicSubnetA" }
+          } ],
+           "BlockDeviceMappings" : [
+              {
+                 "DeviceName" : "/dev/sdm",
+                 "Ebs" : {
+                   "VolumeType" : "gp3",
+                   "Iops" : "200",
+                   "DeleteOnTermination" : "false",
+                   "VolumeSize" : "8"
+                 }
+               }
+           ],
+           "Tags": [
+            {"Key" : "Name", "Value" : "env-bastion"}
+           ]
+        }
+     },
+     "Instance1" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+         "ImageId" :  { "Ref" : "AmiId" },
+         "KeyName" : {"Ref" : "KeyPair"},
+         "InstanceType" : { "Ref" : "InstanceType"},
+       "NetworkInterfaces": [ {
+         "AssociatePublicIpAddress": "true",
+         "DeviceIndex": "0",
+         "GroupSet": [{ "Ref" : "SecurityGroup1" }],
+         "SubnetId": { "Ref" : "PrivateSubnetB" }
+       } ],
+         "BlockDeviceMappings" : [
+            {
+               "DeviceName" : "/dev/sdm",
+               "Ebs" : {
+                 "VolumeType" : "gp3",
+                 "Iops" : "200",
+                 "DeleteOnTermination" : "false",
+                 "VolumeSize" : "8"
+               }
+             }, 
+             {
+               "DeviceName" : "/dev/sdk",
+               "NoDevice" : {}
+             }
+         ],
+         "Tags": [
+          {"Key" : "Name", "Value" : "env-apps"}
+         ]
+      }
+   },
+   "Instance2": {
+       "Type": "AWS::EC2::Instance",
+       "Properties": {
+           "KeyName": {"Ref" : "KeyPair"},
+           "ImageId":  { "Ref" : "AmiId" },
+           "InstanceType": { "Ref" : "InstanceType"},
+           "Monitoring": "true",
+           "SecurityGroupIds" :[{ "Ref" : "SecurityGroup3" }],
+           "SubnetId": {"Ref" : "IntraSubnetB"},
+           "BlockDeviceMappings" : [
+            {
+               "DeviceName" : "/dev/sdm",
+               "Ebs" : {
+                  "VolumeType" : "gp3",
+                  "Iops" : "200",
+                  "DeleteOnTermination" : "true",
+                  "VolumeSize" : "8"
+               }
+            }
+           ],
+           "Tags": [
+               {
+                   "Key": "Name",
+                   "Value": "env-data"
+               }
+           ],
+   }
+           }
+
+    }
+
+   
